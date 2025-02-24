@@ -19,7 +19,7 @@
     }
   },
   "scripts": {
-    "prepublishOnly": "pnpm build",
+    "prepublishOnly": "npm run build",
     "build": "tsc -p .",
     "test": "vitest --run"
   },
