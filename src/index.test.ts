@@ -1,4 +1,4 @@
-import { test, expect } from "vitest";
+import { test, expect, describe } from "vitest";
 import { err, match, ok } from ".";
 
 test("ok fn", () => {
@@ -15,8 +15,8 @@ test("match fn", () => {
     match(
       result_ok,
       (data) => data,
-      (_) => _,
-    ),
+      (_) => _
+    )
   ).toBe("ok");
 
   const result_err = err("err");
@@ -24,7 +24,7 @@ test("match fn", () => {
     match(
       result_err,
       (_) => _,
-      (error) => error,
-    ),
+      (error) => error
+    )
   ).toBe("err");
 });
