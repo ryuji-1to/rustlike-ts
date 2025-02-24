@@ -21,6 +21,7 @@
   "scripts": {
     "prepublishOnly": "pnpm build",
     "build": "tsc -p .",
+    "release": "changeset publish",
     "test": "vitest --run"
   },
   "devDependencies": {
