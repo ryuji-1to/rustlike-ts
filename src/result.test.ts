@@ -1,9 +1,13 @@
 import { test, expect, describe } from "vitest";
-import { Err, Ok } from ".";
+import { Err, Ok, Result } from ".";
+
+function run(isOk: boolean): Result<string, string> {
+  return isOk ? Ok("ok") : Err("err");
+}
 
 describe("Result<T,E>", () => {
   describe("Ok<T>", () => {
-    const ok = Ok("ok");
+    const ok = run(true);
     test("unwrap", () => {
       expect(ok.unwrap()).toBe("ok");
     });
@@ -13,18 +17,56 @@ describe("Result<T,E>", () => {
     test("unwrapOrElse", () => {
       expect(ok.unwrapOrElse((e) => e)).toBe("ok");
     });
+    test("expect", () => {
+      expect(ok.expect("this will not called")).toBe("ok");
+    });
+    test("isOk", () => {
+      expect(ok.isOk()).toBe(true);
+    });
+    test("isErr", () => {
+      expect(ok.isErr()).toBe(false);
+    });
+    test("map", () => {
+      expect(ok.map((data) => "mapped " + data).unwrap()).toBe("mapped ok");
+    });
+    test("mapErr", () => {
+      expect(ok.mapErr((data) => "mapErr " + data).unwrap()).toBe("mapped ok");
+    });
   });
 
   describe("Err<E,_T>", () => {
-    const err = Err("err");
+    const err = run(false);
     test("unwrap", () => {
-      expect(() => err.unwrap()).toThrowError("panic!!!");
+      expect(() => err.unwrap()).toThrowError(
+        'Called unwrap() on an Err value: "err"'
+      );
     });
     test("unwrapOr", () => {
       expect(err.unwrapOr("or")).toBe("or");
     });
     test("unwrapOrElse", () => {
       expect(err.unwrapOrElse((e: string) => e)).toBe("err");
+    });
+    test("expect", () => {
+      expect(() => err.expect("this should be called")).toThrowError(
+        "this should be called"
+      );
+    });
+    test("isOk", () => {
+      expect(err.isOk()).toBe(false);
+    });
+    test("isErr", () => {
+      expect(err.isErr()).toBe(true);
+    });
+    test("map", () => {
+      expect(() => err.map(() => "mapped").unwrap()).toThrowError(
+        'Called unwrap() on an Err value: "err"'
+      );
+    });
+    test("map", () => {
+      expect(err.mapErr((e) => "mapErr " + e).unwrapOrElse((e) => e)).toBe(
+        "mapErr err"
+      );
     });
   });
 });
