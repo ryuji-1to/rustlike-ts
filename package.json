@@ -19,7 +19,7 @@
     }
   },
   "scripts": {
-    "prepublishOnly": "pnpm build",
+    "prepublishOnly": "npm run build",
     "build": "tsc -p .",
     "test": "vitest --run"
   },
@@ -28,5 +28,8 @@
     "@types/node": "^22.13.4",
     "typescript": "^5.7.3",
     "vitest": "^3.0.6"
+  },
+  "volta": {
+    "node": "22.14.0"
   }
 }
