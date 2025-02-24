@@ -10,6 +10,9 @@
   "version": "0.0.2",
   "types": "lib/index.d.ts",
   "main": "lib/index.js",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "exports": {
     ".": {
