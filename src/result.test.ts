@@ -20,6 +20,11 @@ describe("Result<T,E>", () => {
     test("expect", () => {
       expect(ok.expect("this will not called")).toBe("ok");
     });
+    test("expectErr", () => {
+      expect(() => ok.expectErr("this should be called")).toThrowError(
+        "this should be called"
+      );
+    });
     test("isOk", () => {
       expect(ok.isOk()).toBe(true);
     });
@@ -31,6 +36,12 @@ describe("Result<T,E>", () => {
     });
     test("mapErr", () => {
       expect(ok.mapErr((data) => "mapErr " + data).unwrap()).toBe("mapped ok");
+    });
+    test("andThen", () => {
+      expect(ok.andThen((_) => Ok(10)).unwrap()).toBe(10);
+    });
+    test("orElse", () => {
+      expect(ok.orElse((_error) => Err(10)).unwrap()).toBe("mapped ok");
     });
   });
 
@@ -52,6 +63,9 @@ describe("Result<T,E>", () => {
         "this should be called"
       );
     });
+    test("expectErr", () => {
+      expect(err.expectErr("this should not be called")).toBe("err");
+    });
     test("isOk", () => {
       expect(err.isOk()).toBe(false);
     });
@@ -67,6 +81,12 @@ describe("Result<T,E>", () => {
       expect(err.mapErr((e) => "mapErr " + e).unwrapOrElse((e) => e)).toBe(
         "mapErr err"
       );
+    });
+    test("andThen", () => {
+      expect(err.andThen((_data) => Ok(10)).unwrapOr(11)).toBe(11);
+    });
+    test("orElse", () => {
+      expect(err.orElse((_) => Err(10)).expectErr("hoge")).toBe(10);
     });
   });
 });
