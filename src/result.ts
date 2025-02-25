@@ -1,30 +1,85 @@
 export interface Result<T, E> {
-  // Returns the value if it's Ok
+  /**
+   * Returns the contained value if the result is `Ok`, otherwise throws an error.
+   * @throws {Error} If called on `Err`.
+   */
   unwrap(): T;
-  // Returns the value if it's Ok, or a default value if it's Err
+
+  /**
+   * Returns the contained value if the result is `Ok`, otherwise returns the provided default value.
+   */
   unwrapOr(or: T): T;
-  // Returns the value if it's Ok, or generates a default value using a function if it's Err
+
+  /**
+   * Returns the contained value if the result is `Ok`, otherwise computes a default value using the provided function.
+   */
   unwrapOrElse(fn: (error: E) => T): T;
-  // Returns the value if it's Ok, throws an error with a message if it's Err
+
+  /**
+   * Returns the contained value if the result is `Ok`, otherwise throws an error with the provided message.
+   * @throws {Error} If called on `Err`, with the given message.
+   */
   expect(message: string): T;
-  // Returns the error value if it's Err, throws an error with a message if it's Ok
+
+  /**
+   * Returns the contained error if the result is `Err`, otherwise throws an error with the provided message.
+   * @throws {Error} If called on `Ok`, with the given message.
+   */
   expectErr(message: string): E;
-  // Returns true if it's Ok
+
+  /**
+   * Returns `true` if the result is `Ok`, otherwise `false`.
+   */
   isOk(): boolean;
-  // Returns true if it's Err
+
+  /**
+   * Returns `true` if the result is `Err`, otherwise `false`.
+   */
   isErr(): boolean;
-  // ok();
-  // err();
-  // Transforms the Ok value using the given function
+
+  /**
+   * Converts the `Result<T, E>` into an `Option<T>`, returning `Some(value)` if `Ok`, otherwise `None`.
+   */
+  // ok(): Option<T>;
+
+  /**
+   * Converts the `Result<T, E>` into an `Option<E>`, returning `Some(error)` if `Err`, otherwise `None`.
+   */
+  // err(): Option<E>;
+
+  /**
+   * Applies a function to the contained `Ok` value, returning a new `Result<T, E>`.
+   * If the result is `Err`, it remains unchanged.
+   */
   map(fn: (data: T) => T): Result<T, E>;
-  // Transforms the Err value using the given function
+
+  /**
+   * Applies a function to the contained `Err` value, returning a new `Result<T, E>`.
+   * If the result is `Ok`, it remains unchanged.
+   */
   mapErr(fn: (err: E) => E): Result<T, E>;
-  // Returns a new Result from the Ok value using a function, or keeps the same Result if it's Err
+
+  /**
+   * Applies a function to the `Ok` value and returns a new `Result<U, E>`.
+   * If the result is `Err`, it remains unchanged.
+   */
   andThen<U>(fn: (data: T) => Result<U, E>): Result<U, E>;
-  // Returns a new Result from the Err value using a function, or keeps the same Result if it's Ok
+
+  /**
+   * Applies a function to the `Err` value and returns a new `Result<T, F>`.
+   * If the result is `Ok`, it remains unchanged.
+   */
   orElse<F>(fn: (err: E) => Result<T, F>): Result<T, F>;
-  // and();
-  // or();
+
+  /**
+   * Returns `Err` if the result is `Err`, otherwise returns the provided `Result<U, E>`.
+   */
+  // and<U>(result: Result<U, E>): Result<U, E>;
+
+  /**
+   * Returns the result if it is `Ok`, otherwise returns the provided alternative `Result<T, E>`.
+   */
+  // or(result: Result<T, E>): Result<T, E>;
 }
 
 class _Ok<T, _E = any> implements Result<T, _E> {
