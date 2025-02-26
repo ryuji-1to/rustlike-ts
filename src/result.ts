@@ -112,7 +112,7 @@ class _Ok<T, _E = any> implements Result<T, _E> {
   }
 
   expectErr(message: string): _E {
-    throw new Error(message);
+    throw new ResultError(message);
   }
 
   isOk(): boolean {
@@ -148,7 +148,7 @@ class _Err<E, _T = any> implements Result<_T, E> {
   }
 
   unwrap(): _T {
-    throw new Error(
+    throw new ResultError(
       `Called unwrap() on an Err value: ${JSON.stringify(this.#error)}`
     );
   }
@@ -162,7 +162,7 @@ class _Err<E, _T = any> implements Result<_T, E> {
   }
 
   expect(message: string): _T {
-    throw new Error(message);
+    throw new ResultError(message);
   }
 
   expectErr(_: string): E {
