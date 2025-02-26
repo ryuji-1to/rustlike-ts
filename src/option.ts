@@ -71,8 +71,16 @@ export interface Option<T> {
   filter(fn: (data: T) => boolean): Option<T>;
 }
 
+export class OptionError extends Error {
+  readonly name = "OptionError";
+  constructor(message: string) {
+    super(message);
+  }
+}
+
 class _Some<T> implements Option<T> {
   #data: T;
+
   constructor(data: T) {
     this.#data = data;
   }
@@ -80,40 +88,52 @@ class _Some<T> implements Option<T> {
   isSome(): boolean {
     return true;
   }
+
   isNone(): boolean {
     return false;
   }
+
   unwrap(): T {
     return this.#data;
   }
+
   expect(_message: string): T {
     return this.#data;
   }
+
   unwrapOr(_or: T): T {
     return this.#data;
   }
+
   unwrapOrElse(_fn: () => T): T {
     return this.#data;
   }
+
   map(fn: (data: T) => T): Option<T> {
     this.#data = fn(this.#data);
     return this;
   }
+
   mapOr(_fallback: T, fn: (data: T) => T): T {
     return fn(this.#data);
   }
+
   mapOrElse(_noneFn: () => T, someFn: (data: T) => T): T {
     return someFn(this.#data);
   }
+
   and(option: Option<T>): Option<T> {
     return option.isSome() ? option : new _None<any>();
   }
+
   or(_or: Option<T>): Option<T> {
     return this;
   }
+
   andThen(fn: (data: T) => Option<T>): Option<T> {
     return fn(this.#data);
   }
+
   filter(fn: (data: T) => boolean): Option<T> {
     return fn(this.#data) ? this : new _None<any>();
   }
@@ -123,39 +143,51 @@ class _None<T> implements Option<T> {
   isSome(): boolean {
     return false;
   }
+
   isNone(): boolean {
     return true;
   }
+
   unwrap(): T {
-    throw new Error("panic!!!");
+    throw new OptionError("Attempted to unwrap a None value!");
   }
+
   expect(message: string): T {
-    throw new Error(message);
+    throw new OptionError(message);
   }
+
   unwrapOr(or: T): T {
     return or;
   }
+
   unwrapOrElse(fn: () => T): T {
     return fn();
   }
+
   map(_fn: (data: T) => T): Option<T> {
     return this;
   }
+
   mapOr(fallback: T, _fn: (data: T) => T): T {
     return fallback;
   }
+
   mapOrElse(noneFn: () => T, _someFn: (data: T) => T): T {
     return noneFn();
   }
+
   and(_option: Option<T>): Option<T> {
     return this;
   }
+
   or(or: Option<T>): Option<T> {
     return or;
   }
+
   andThen(_fn: (data: T) => Option<T>): Option<T> {
     return this;
   }
+
   filter(_fn: (data: T) => boolean): Option<T> {
     return this;
   }

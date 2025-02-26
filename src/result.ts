@@ -82,6 +82,13 @@ export interface Result<T, E> {
   // or(result: Result<T, E>): Result<T, E>;
 }
 
+export class ResultError extends Error {
+  readonly name = "ResultError";
+  constructor(message: string) {
+    super(message);
+  }
+}
+
 class _Ok<T, _E = any> implements Result<T, _E> {
   #data: T;
   constructor(data: T) {
@@ -91,34 +98,44 @@ class _Ok<T, _E = any> implements Result<T, _E> {
   unwrap(): T {
     return this.#data;
   }
+
   unwrapOr(_: T): T {
     return this.#data;
   }
+
   unwrapOrElse(_: (error: _E) => T): T {
     return this.#data;
   }
+
   expect(_: string): T {
     return this.#data;
   }
+
   expectErr(message: string): _E {
     throw new Error(message);
   }
+
   isOk(): boolean {
     return true;
   }
+
   isErr(): boolean {
     return false;
   }
+
   map(fn: (data: T) => T): Result<T, _E> {
     this.#data = fn(this.#data);
     return this;
   }
+
   mapErr(_fn: (err: _E) => _E): Result<T, _E> {
     return this;
   }
+
   andThen<U>(fn: (data: T) => Result<U, _E>): Result<U, _E> {
     return fn(this.#data);
   }
+
   orElse<_F>(_: (err: _E) => Result<T, _F>): Result<T, _F> {
     return this as unknown as Result<T, _F>;
   }
@@ -135,34 +152,44 @@ class _Err<E, _T = any> implements Result<_T, E> {
       `Called unwrap() on an Err value: ${JSON.stringify(this.#error)}`
     );
   }
+
   unwrapOr(or: _T): _T {
     return or;
   }
+
   unwrapOrElse(fn: (error: E) => _T): _T {
     return fn(this.#error);
   }
+
   expect(message: string): _T {
     throw new Error(message);
   }
+
   expectErr(_: string): E {
     return this.#error;
   }
+
   isOk(): boolean {
     return false;
   }
+
   isErr(): boolean {
     return true;
   }
+
   map(_fn: (data: _T) => _T): Result<_T, E> {
     return this;
   }
+
   mapErr(fn: (err: E) => E): Result<_T, E> {
     this.#error = fn(this.#error);
     return this;
   }
+
   andThen<_U>(_fn: (data: _T) => Result<_U, E>): Result<_U, E> {
     return this as unknown as Result<_U, E>;
   }
+
   orElse<F>(fn: (err: E) => Result<_T, F>): Result<_T, F> {
     return fn(this.#error);
   }
