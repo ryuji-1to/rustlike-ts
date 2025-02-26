@@ -1,3 +1,5 @@
+import { None, Some, type Option } from "./option";
+
 export interface Result<T, E> {
   /**
    * Returns the contained value if the result is `Ok`, otherwise throws an error.
@@ -40,12 +42,12 @@ export interface Result<T, E> {
   /**
    * Converts the `Result<T, E>` into an `Option<T>`, returning `Some(value)` if `Ok`, otherwise `None`.
    */
-  // ok(): Option<T>;
+  ok(): Option<T>;
 
   /**
    * Converts the `Result<T, E>` into an `Option<E>`, returning `Some(error)` if `Err`, otherwise `None`.
    */
-  // err(): Option<E>;
+  err(): Option<E>;
 
   /**
    * Applies a function to the contained `Ok` value, returning a new `Result<T, E>`.
@@ -74,12 +76,12 @@ export interface Result<T, E> {
   /**
    * Returns `Err` if the result is `Err`, otherwise returns the provided `Result<U, E>`.
    */
-  // and<U>(result: Result<U, E>): Result<U, E>;
+  and<U>(result: Result<U, E>): Result<U, E>;
 
   /**
    * Returns the result if it is `Ok`, otherwise returns the provided alternative `Result<T, E>`.
    */
-  // or(result: Result<T, E>): Result<T, E>;
+  or(result: Result<T, E>): Result<T, E>;
 }
 
 export class ResultError extends Error {
@@ -123,6 +125,14 @@ class _Ok<T, _E = any> implements Result<T, _E> {
     return false;
   }
 
+  ok(): Option<T> {
+    return Some(this.#data);
+  }
+
+  err(): Option<_E> {
+    return None;
+  }
+
   map(fn: (data: T) => T): Result<T, _E> {
     this.#data = fn(this.#data);
     return this;
@@ -132,8 +142,16 @@ class _Ok<T, _E = any> implements Result<T, _E> {
     return this;
   }
 
+  and<U>(result: Result<U, _E>): Result<U, _E> {
+    return result;
+  }
+
   andThen<U>(fn: (data: T) => Result<U, _E>): Result<U, _E> {
     return fn(this.#data);
+  }
+
+  or(_result: Result<T, _E>): Result<T, _E> {
+    return this;
   }
 
   orElse<_F>(_: (err: _E) => Result<T, _F>): Result<T, _F> {
@@ -177,6 +195,14 @@ class _Err<E, _T = any> implements Result<_T, E> {
     return true;
   }
 
+  ok(): Option<_T> {
+    return None;
+  }
+
+  err(): Option<E> {
+    return Some(this.#error);
+  }
+
   map(_fn: (data: _T) => _T): Result<_T, E> {
     return this;
   }
@@ -186,8 +212,16 @@ class _Err<E, _T = any> implements Result<_T, E> {
     return this;
   }
 
+  and<_U>(_result: Result<_U, E>): Result<_U, E> {
+    return this as unknown as Result<_U, E>;
+  }
+
   andThen<_U>(_fn: (data: _T) => Result<_U, E>): Result<_U, E> {
     return this as unknown as Result<_U, E>;
+  }
+
+  or(result: Result<_T, E>): Result<_T, E> {
+    return result;
   }
 
   orElse<F>(fn: (err: E) => Result<_T, F>): Result<_T, F> {
