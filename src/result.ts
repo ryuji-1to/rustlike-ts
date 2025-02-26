@@ -19,13 +19,13 @@ export interface Result<T, E> {
 
   /**
    * Returns the contained value if the result is `Ok`, otherwise throws an error with the provided message.
-   * @throws {Error} If called on `Err`, with the given message.
+   * @throws {ResultError} If called on `Err`, with the given message.
    */
   expect(message: string): T;
 
   /**
    * Returns the contained error if the result is `Err`, otherwise throws an error with the provided message.
-   * @throws {Error} If called on `Ok`, with the given message.
+   * @throws {ResultError} If called on `Ok`, with the given message.
    */
   expectErr(message: string): E;
 
@@ -62,35 +62,39 @@ export interface Result<T, E> {
   mapErr(fn: (err: E) => E): Result<T, E>;
 
   /**
+   * Returns `Err` if the result is `Err`, otherwise returns the provided `Result<U, E>`.
+   */
+  and<U>(result: Result<U, E>): Result<U, E>;
+
+  /**
    * Applies a function to the `Ok` value and returns a new `Result<U, E>`.
    * If the result is `Err`, it remains unchanged.
    */
   andThen<U>(fn: (data: T) => Result<U, E>): Result<U, E>;
 
   /**
+   * Returns the result if it is `Ok`, otherwise returns the provided alternative `Result<T, E>`.
+   */
+  or(result: Result<T, E>): Result<T, E>;
+
+  /**
    * Applies a function to the `Err` value and returns a new `Result<T, F>`.
    * If the result is `Ok`, it remains unchanged.
    */
   orElse<F>(fn: (err: E) => Result<T, F>): Result<T, F>;
-
-  /**
-   * Returns `Err` if the result is `Err`, otherwise returns the provided `Result<U, E>`.
-   */
-  and<U>(result: Result<U, E>): Result<U, E>;
-
-  /**
-   * Returns the result if it is `Ok`, otherwise returns the provided alternative `Result<T, E>`.
-   */
-  or(result: Result<T, E>): Result<T, E>;
 }
 
+/**
+ * Custom error class used for errors within the Result type.
+ */
 export class ResultError extends Error {
   readonly name = "ResultError";
-  constructor(message: string) {
-    super(message);
-  }
 }
 
+/**
+ * Represents the Ok variant of the Result type.
+ * Stores a value of type T when the operation is successful.
+ */
 class _Ok<T, _E = any> implements Result<T, _E> {
   #data: T;
   constructor(data: T) {
@@ -159,6 +163,10 @@ class _Ok<T, _E = any> implements Result<T, _E> {
   }
 }
 
+/**
+ * Represents the Err variant of the Result type.
+ * Stores an error of type E when the operation fails.
+ */
 class _Err<E, _T = any> implements Result<_T, E> {
   #error: E;
   constructor(error: E) {
@@ -229,10 +237,12 @@ class _Err<E, _T = any> implements Result<_T, E> {
   }
 }
 
+// Factory function to create a Ok instance
 export function Ok<T>(data: T): Result<T, any> {
   return new _Ok(data);
 }
 
+// Factory function to create a Err instance
 export function Err<E>(error: E): Result<any, E> {
   return new _Err(error);
 }

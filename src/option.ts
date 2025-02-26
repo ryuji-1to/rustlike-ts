@@ -11,13 +11,13 @@ export interface Option<T> {
 
   /**
    * Returns the contained value if `Some`, otherwise throws an error.
-   * @throws {Error} If called on `None`.
+   * @throws {OptionError} If called on `None`.
    */
   unwrap(): T;
 
   /**
    * Returns the contained value if `Some`, otherwise throws an error with the given message.
-   * @throws {Error} If called on `None`, with the provided message.
+   * @throws {OptionError} If called on `None`, with the provided message.
    */
   expect(message: string): T;
 
@@ -71,13 +71,12 @@ export interface Option<T> {
   filter(fn: (data: T) => boolean): Option<T>;
 }
 
+// Custom error class for handling Option-related error
 export class OptionError extends Error {
   readonly name = "OptionError";
-  constructor(message: string) {
-    super(message);
-  }
 }
 
+// _Some class representing the 'Some' variant of Option
 class _Some<T> implements Option<T> {
   #data: T;
 
@@ -139,6 +138,7 @@ class _Some<T> implements Option<T> {
   }
 }
 
+// _None class representing the 'None' variant of Option
 class _None<T> implements Option<T> {
   isSome(): boolean {
     return false;
@@ -193,8 +193,10 @@ class _None<T> implements Option<T> {
   }
 }
 
+// Factory function to create a Some instance
 export function Some<T>(data: T): Option<T> {
   return new _Some(data);
 }
 
+// Singleton instance representing the None variant
 export const None: Option<any> = new _None<any>();
