@@ -1,5 +1,5 @@
 import { test, expect, describe } from "vitest";
-import { Err, Ok, Result } from ".";
+import { Err, Ok, type Result, ResultError } from ".";
 
 function run(isOk: boolean): Result<string, string> {
   return isOk ? Ok("ok") : Err("err");
@@ -36,10 +36,10 @@ describe("Result<T,E>", () => {
       expect(ok.ok().unwrap()).toBe("ok");
     });
     test("map", () => {
-      expect(ok.map((data) => "mapped " + data).unwrap()).toBe("mapped ok");
+      expect(ok.map((data) => `mapped ${data}`).unwrap()).toBe("mapped ok");
     });
     test("mapErr", () => {
-      expect(ok.mapErr((data) => "mapErr " + data).unwrap()).toBe("mapped ok");
+      expect(ok.mapErr((data) => `mapErr ${data}`).unwrap()).toBe("mapped ok");
     });
     test("and", () => {
       expect(ok.and(Ok("and")).unwrap()).toBe("and");
@@ -61,6 +61,7 @@ describe("Result<T,E>", () => {
       expect(() => err.unwrap()).toThrowError(
         'Called unwrap() on an Err value: "err"'
       );
+      expect(() => err.unwrap()).toThrowError(ResultError);
     });
     test("unwrapOr", () => {
       expect(err.unwrapOr("or")).toBe("or");
@@ -71,6 +72,9 @@ describe("Result<T,E>", () => {
     test("expect", () => {
       expect(() => err.expect("this should be called")).toThrowError(
         "this should be called"
+      );
+      expect(() => err.expect("this should be called")).toThrowError(
+        ResultError
       );
     });
     test("expectErr", () => {
@@ -95,7 +99,7 @@ describe("Result<T,E>", () => {
       );
     });
     test("map", () => {
-      expect(err.mapErr((e) => "mapErr " + e).unwrapOrElse((e) => e)).toBe(
+      expect(err.mapErr((e) => `mapErr ${e}`).unwrapOrElse((e) => e)).toBe(
         "mapErr err"
       );
     });

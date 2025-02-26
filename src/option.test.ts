@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { None, Option, Some } from "./option";
+import { None, type Option, OptionError, Some } from "./option";
 
 function result(isNone: boolean): Option<string> {
   return isNone ? None : Some("some");
@@ -24,7 +24,7 @@ describe("Option<T>", () => {
       expect(some.unwrapOrElse(() => "or")).toBe("some");
     });
     test("map", () => {
-      expect(some.map((data) => "mapped " + data).unwrap()).toBe("mapped some");
+      expect(some.map((data) => `mapped ${data}`).unwrap()).toBe("mapped some");
     });
     test("mapOr", () => {
       expect(some.mapOr("or", (data) => data)).toBe("mapped some");
@@ -59,6 +59,7 @@ describe("Option<T>", () => {
       expect(() => none.unwrap()).toThrowError(
         "Attempted to unwrap a None value!"
       );
+      expect(() => none.unwrap()).toThrowError(OptionError);
     });
 
     test("unwrapOr", () => {
@@ -70,18 +71,18 @@ describe("Option<T>", () => {
     });
 
     test("map", () => {
-      expect(none.map((x) => x + "mapped").isNone()).toBe(true);
+      expect(none.map((x) => `${x} mapped`).isNone()).toBe(true);
     });
 
     test("mapOr", () => {
-      expect(none.mapOr("99", (x) => x + "mapOr")).toBe("99");
+      expect(none.mapOr("99", (x) => `${x} mapOr`)).toBe("99");
     });
 
     test("mapOrElse", () => {
       expect(
         none.mapOrElse(
           () => "99",
-          (x) => x + "mapOrElse"
+          (x) => `${x} mapOrElse`
         )
       ).toBe("99");
     });
