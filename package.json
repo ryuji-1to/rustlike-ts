@@ -1,10 +1,21 @@
 {
   "name": "rustlike-ts",
-  "description": "",
+  "description": "A Rust-like functional utility library for safe and expressive error handling in TypeScript.",
   "author": "Ryuji Ito",
   "keywords": [
+    "typescript",
     "rust",
-    "typescript"
+    "functional",
+    "error-handling",
+    "result",
+    "option",
+    "monad",
+    "safe-programming",
+    "null-safety",
+    "optional",
+    "unwrap",
+    "rustlike",
+    "typescript-utilities"
   ],
   "license": "MIT",
   "version": "0.0.7",
