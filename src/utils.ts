@@ -16,10 +16,10 @@ import type { Result } from "./result";
  * @returns {R} - The return value of the executed function.
  */
 export function matchResult<T, E, R = any>(
-	result: Result<T, E>,
-	op: { Ok: (data: T) => R; Err: (error: E) => R },
+  result: Result<T, E>,
+  op: { Ok: (data: T) => R; Err: (error: E) => R },
 ) {
-	return result.isOk() ? op.Ok(result.unwrap()) : op.Err(result.expectErr(""));
+  return result.isOk() ? op.Ok(result.unwrap()) : op.Err(result.expectErr(""));
 }
 
 /**
@@ -36,13 +36,13 @@ export function matchResult<T, E, R = any>(
  * @returns {R} - The return value of the executed function.
  */
 export function matchOption<T, R = any>(
-	result: Option<T>,
-	op: {
-		Some: (data: T) => R;
-		None: () => R;
-	},
+  result: Option<T>,
+  op: {
+    Some: (data: T) => R;
+    None: () => R;
+  },
 ): R {
-	return result.isSome() ? op.Some(result.unwrap()) : op.None();
+  return result.isSome() ? op.Some(result.unwrap()) : op.None();
 }
 
 // export function match<T, E, R>(
