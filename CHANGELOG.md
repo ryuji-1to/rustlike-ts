@@ -1,5 +1,11 @@
 # rustlike-ts
 
+## 0.1.2
+
+### Patch Changes
+
+- [#28](https://github.com/ryuji-1to/rustlike-ts/pull/28) [`6ef9a7c`](https://github.com/ryuji-1to/rustlike-ts/commit/6ef9a7c657b391ead51b32f408582cbfe7c7da46) Thanks [@ryuji-1to](https://github.com/ryuji-1to)! - docs: 📝 update
+
 ## 0.1.1
 
 ### Patch Changes
