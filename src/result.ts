@@ -3,9 +3,15 @@ import { None, Some, type Option } from "./option";
 export interface Result<T, E> {
   /**
    * Returns the contained value if the result is `Ok`, otherwise throws an error.
-   * @throws {Error} If called on `Err`.
+   * @throws {ResultError} If called on `Err`.
    */
   unwrap(): T;
+
+  /**
+   * Returns the contained value if the result is `Err`, otherwise throws an error.
+   * @throws {ResultError} If called on `Ok`.
+   */
+  unwrapErr(): E;
 
   /**
    * Returns the contained value if the result is `Ok`, otherwise returns the provided default value.
@@ -105,6 +111,12 @@ class _Ok<T, _E = any> implements Result<T, _E> {
     return this.#data;
   }
 
+  unwrapErr(): _E {
+    throw new ResultError(
+      `Called unwrapErr() on an Ok value: ${JSON.stringify(this.#data)}`,
+    );
+  }
+
   unwrapOr(_: T): T {
     return this.#data;
   }
@@ -177,6 +189,10 @@ class _Err<E, _T = any> implements Result<_T, E> {
     throw new ResultError(
       `Called unwrap() on an Err value: ${JSON.stringify(this.#error)}`,
     );
+  }
+
+  unwrapErr(): E {
+    return this.#error;
   }
 
   unwrapOr(or: _T): _T {
