@@ -26,6 +26,7 @@ describe("matchResult", () => {
     });
     expect(r).toBe("ok");
   });
+
   test("Err", () => {
     const ok = result(false);
     const r = matchResult(ok, {
@@ -45,6 +46,7 @@ describe("matchOption", () => {
     });
     expect(r).toBe("some");
   });
+
   test("Err", () => {
     const none = option(false);
     const r = matchOption(none, {
