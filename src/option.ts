@@ -1,3 +1,5 @@
+import { type Result, Err, Ok } from "./result";
+
 export interface Option<T> {
   /**
    * Returns `true` if the option is `Some`, otherwise `false`.
@@ -59,10 +61,21 @@ export interface Option<T> {
   or(or: Option<T>): Option<T>;
 
   /**
+   * Transforms the `Option<T>` into a `Result<T, E>`, mapping `Some(v)` to `Ok(v)` and `None` to `Err(result)`.
+   */
+  okOr<E>(result: E): Result<T, E>;
+
+  /**
+   * Transforms the `Option<T>` into a `Result<T, E>`, mapping `Some(v)` to `Ok(v)` and `None` to `Err(errFn())`.
+   * Uses a closure to create the error value only when needed.
+   */
+  okOrElse<E>(errFn: () => E): Result<T, E>;
+
+  /**
    * Applies a function to the contained value if `Some`, returning the resulting `Option<U>`.
    * If `None`, returns `None`.
    */
-  andThen(fn: (data: T) => Option<T>): Option<T>;
+  andThen<U>(fn: (data: T) => Option<U>): Option<U>;
 
   /**
    * Returns `Some` if the option is `Some` and the predicate function returns `true`.
@@ -96,15 +109,15 @@ class _Some<T> implements Option<T> {
     return this.#data;
   }
 
-  expect(_message: string): T {
+  expect(_: string): T {
     return this.#data;
   }
 
-  unwrapOr(_or: T): T {
+  unwrapOr(_: T): T {
     return this.#data;
   }
 
-  unwrapOrElse(_fn: () => T): T {
+  unwrapOrElse(_: () => T): T {
     return this.#data;
   }
 
@@ -113,11 +126,11 @@ class _Some<T> implements Option<T> {
     return this;
   }
 
-  mapOr(_fallback: T, fn: (data: T) => T): T {
+  mapOr(_: T, fn: (data: T) => T): T {
     return fn(this.#data);
   }
 
-  mapOrElse(_noneFn: () => T, someFn: (data: T) => T): T {
+  mapOrElse(_: () => T, someFn: (data: T) => T): T {
     return someFn(this.#data);
   }
 
@@ -129,7 +142,15 @@ class _Some<T> implements Option<T> {
     return this;
   }
 
-  andThen(fn: (data: T) => Option<T>): Option<T> {
+  okOr<E>(_: E): Result<T, E> {
+    return Ok(this.#data);
+  }
+
+  okOrElse<E>(_: () => E): Result<T, E> {
+    return Ok(this.#data);
+  }
+
+  andThen<U>(fn: (data: T) => Option<U>): Option<U> {
     return fn(this.#data);
   }
 
@@ -164,19 +185,19 @@ class _None<T> implements Option<T> {
     return fn();
   }
 
-  map(_fn: (data: T) => T): Option<T> {
+  map(_: (data: T) => T): Option<T> {
     return this;
   }
 
-  mapOr(fallback: T, _fn: (data: T) => T): T {
+  mapOr(fallback: T, _: (data: T) => T): T {
     return fallback;
   }
 
-  mapOrElse(noneFn: () => T, _someFn: (data: T) => T): T {
+  mapOrElse(noneFn: () => T, _: (data: T) => T): T {
     return noneFn();
   }
 
-  and(_option: Option<T>): Option<T> {
+  and(_: Option<T>): Option<T> {
     return this;
   }
 
@@ -184,11 +205,19 @@ class _None<T> implements Option<T> {
     return or;
   }
 
-  andThen(_fn: (data: T) => Option<T>): Option<T> {
-    return this;
+  okOr<E>(result: E): Result<T, E> {
+    return Err(result);
   }
 
-  filter(_fn: (data: T) => boolean): Option<T> {
+  okOrElse<E>(errFn: () => E): Result<T, E> {
+    return Err(errFn());
+  }
+
+  andThen<_U>(_: (data: T) => Option<_U>): Option<_U> {
+    return this as unknown as Option<_U>;
+  }
+
+  filter(_: (data: T) => boolean): Option<T> {
     return this;
   }
 }
