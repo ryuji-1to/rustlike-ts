@@ -1,5 +1,11 @@
 # rustlike-ts
 
+## 1.0.1
+
+### Patch Changes
+
+- [#36](https://github.com/ryuji-1to/rustlike-ts/pull/36) [`0d5cbdd`](https://github.com/ryuji-1to/rustlike-ts/commit/0d5cbdd7cbcbddb172b4efa2cefc5b9484caa637) Thanks [@ryuji-1to](https://github.com/ryuji-1to)! - config: 🔧 apply cjs
+
 ## 1.0.0
 
 ### Major Changes
