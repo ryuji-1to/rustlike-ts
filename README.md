@@ -105,3 +105,75 @@ class OptionError extends Error {
   readonly name = "OptionError";
 }
 ```
+
+## Utility Functions for Matching `Result` and `Option`
+
+This module provides utility functions for handling `Result` and `Option` types in a structured manner. The functions allow executing specific logic based on the state of these types, improving code clarity and reducing the need for explicit conditional checks.
+
+### `matchResult<T, E, R>`
+
+#### Description
+
+Matches a `Result<T, E>` and executes the corresponding function based on its state:
+
+- If the `Result` is `Ok`, it calls `op.Ok` with the contained value.
+- If the `Result` is `Err`, it calls `op.Err` with the contained error.
+
+This function provides a structured way to handle success and error cases, reducing the need for manual conditionals.
+
+#### Parameters
+
+- `result: Result<T, E>` - The `Result` instance to match.
+- `op: { Ok: (data: T) => R; Err: (error: E) => R }` - An object containing callback functions:
+  - `Ok(data: T): R` - Function executed if `result` is `Ok`, receiving the contained value.
+  - `Err(error: E): R` - Function executed if `result` is `Err`, receiving the contained error.
+
+#### Returns
+
+`R` - The return value of the executed function.
+
+#### Example
+
+```typescript
+const result: Result<number, string> = getResult();
+const message = matchResult(result, {
+  Ok: (value) => `Success: ${value}`,
+  Err: (error) => `Error: ${error}`,
+});
+console.log(message);
+```
+
+---
+
+### `matchOption<T, R>`
+
+#### Description
+
+Matches an `Option<T>` and executes the corresponding function based on its state:
+
+- If the `Option` is `Some`, it calls `op.Some` with the contained value.
+- If the `Option` is `None`, it calls `op.None`.
+
+This function allows handling optional values in a structured way, eliminating explicit `if` statements.
+
+#### Parameters
+
+- `result: Option<T>` - The `Option` instance to match.
+- `op: { Some: (data: T) => R; None: () => R }` - An object containing callback functions:
+  - `Some(data: T): R` - Function executed if `result` is `Some`, receiving the contained value.
+  - `None(): R` - Function executed if `result` is `None`.
+
+#### Returns
+
+`R` - The return value of the executed function.
+
+#### Example
+
+```typescript
+const option: Option<string> = getOption();
+const result = matchOption(option, {
+  Some: (value) => `Value: ${value}`,
+  None: () => "No value found",
+});
+console.log(result);
+```
