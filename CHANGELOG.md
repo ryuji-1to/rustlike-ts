@@ -1,5 +1,11 @@
 # rustlike-ts
 
+## 1.1.0
+
+### Minor Changes
+
+- [#44](https://github.com/ryuji-1to/rustlike-ts/pull/44) [`d33d1c6`](https://github.com/ryuji-1to/rustlike-ts/commit/d33d1c6a5c02685255b5f772589f2d9d682e81b8) Thanks [@ryuji-1to](https://github.com/ryuji-1to)! - ✨ add map and filterMap
+
 ## 1.0.1
 
 ### Patch Changes
