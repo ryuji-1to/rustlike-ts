@@ -222,6 +222,10 @@ class _None<T> implements Option<T> {
   }
 }
 
+export type InnerOption<T extends Option<any>> = T extends Option<infer R>
+  ? R
+  : never;
+
 // Factory function to create a Some instance
 export function Some<T>(data: T): Option<T> {
   return new _Some(data);

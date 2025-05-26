@@ -113,7 +113,7 @@ class _Ok<T, _E = any> implements Result<T, _E> {
 
   unwrapErr(): _E {
     throw new ResultError(
-      `Called unwrapErr() on an Ok value: ${JSON.stringify(this.#data)}`,
+      `Called unwrapErr() on an Ok value: ${JSON.stringify(this.#data)}`
     );
   }
 
@@ -187,7 +187,7 @@ class _Err<E, _T = any> implements Result<_T, E> {
 
   unwrap(): _T {
     throw new ResultError(
-      `Called unwrap() on an Err value: ${JSON.stringify(this.#error)}`,
+      `Called unwrap() on an Err value: ${JSON.stringify(this.#error)}`
     );
   }
 
@@ -252,6 +252,20 @@ class _Err<E, _T = any> implements Result<_T, E> {
     return fn(this.#error);
   }
 }
+
+export type InnerResultOk<T extends Result<any, any>> = T extends Result<
+  infer R,
+  any
+>
+  ? R
+  : never;
+
+export type InnerResultErr<T extends Result<any, any>> = T extends Result<
+  any,
+  infer R
+>
+  ? R
+  : never;
 
 // Factory function to create a Ok instance
 export function Ok<T>(data: T): Result<T, any> {
