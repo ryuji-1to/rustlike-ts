@@ -1,5 +1,11 @@
 # rustlike-ts
 
+## 1.2.0
+
+### Minor Changes
+
+- [#102](https://github.com/ryuji-1to/rustlike-ts/pull/102) [`9911d1f`](https://github.com/ryuji-1to/rustlike-ts/commit/9911d1f983bd58320b3b23f30504f8ac9e1dbd91) Thanks [@renovate](https://github.com/apps/renovate)! - chore(deps): update dependency typescript to v6
+
 ## 1.1.1
 
 ### Patch Changes
