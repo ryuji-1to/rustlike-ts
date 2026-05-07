@@ -21,7 +21,7 @@
   "version": "2.0.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ryuji-1to/rustlike-ts"
+    "url": "git+https://github.com/ryuji-1to/rustlike-ts.git"
   },
   "types": "lib/index.d.ts",
   "main": "lib/index.js",
