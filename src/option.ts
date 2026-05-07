@@ -37,28 +37,33 @@ export interface Option<T> {
    * Applies a function to the contained value if `Some`, returning a new `Option<T>`.
    * If `None`, returns `None`.
    */
-  map(fn: (data: T) => T): Option<T>;
+  map<U>(fn: (data: T) => U): Option<U>;
 
   /**
    * Applies a function to the contained value if `Some`, returning the result.
    * If `None`, returns the provided fallback value.
    */
-  mapOr(fallback: T, fn: (data: T) => T): T;
+  mapOr<U>(fallback: U, fn: (data: T) => U): U;
 
   /**
    * Applies `someFn` if `Some`, otherwise calls `noneFn` and returns its result.
    */
-  mapOrElse(noneFn: () => T, someFn: (data: T) => T): T;
+  mapOrElse<U>(noneFn: () => U, someFn: (data: T) => U): U;
 
   /**
    * Returns `None` if the option is `None`, otherwise returns the provided `Option<T>`.
    */
-  and(option: Option<T>): Option<T>;
+  and<U>(option: Option<U>): Option<U>;
 
   /**
    * Returns the option if it is `Some`, otherwise returns the provided alternative `Option<T>`.
    */
   or(or: Option<T>): Option<T>;
+
+  /**
+   * Returns the option if it is `Some`, otherwise calls `fn` and returns its result.
+   */
+  orElse(fn: () => Option<T>): Option<T>;
 
   /**
    * Transforms the `Option<T>` into a `Result<T, E>`, mapping `Some(v)` to `Ok(v)` and `None` to `Err(result)`.
@@ -82,6 +87,31 @@ export interface Option<T> {
    * Otherwise, returns `None`.
    */
   filter(fn: (data: T) => boolean): Option<T>;
+
+  /**
+   * Returns the contained value if `Some`, otherwise `null`.
+   */
+  toNullable(): T | null;
+
+  /**
+   * Returns the contained value if `Some`, otherwise `undefined`.
+   */
+  toUndefined(): T | undefined;
+
+  /**
+   * Calls `fn` with the contained value if `Some`, then returns the original option.
+   */
+  inspect(fn: (data: T) => void): Option<T>;
+
+  /**
+   * Returns `true` if this option is `Some` and contains the provided value.
+   */
+  contains(value: T): boolean;
+
+  /**
+   * Returns `Some` if exactly one of `this` or `option` is `Some`; otherwise returns `None`.
+   */
+  xor(option: Option<T>): Option<T>;
 }
 
 // Custom error class for handling Option-related error
@@ -91,7 +121,7 @@ export class OptionError extends Error {
 
 // _Some class representing the 'Some' variant of Option
 class _Some<T> implements Option<T> {
-  #data: T;
+  readonly #data: T;
 
   constructor(data: T) {
     this.#data = data;
@@ -121,24 +151,27 @@ class _Some<T> implements Option<T> {
     return this.#data;
   }
 
-  map(fn: (data: T) => T): Option<T> {
-    this.#data = fn(this.#data);
-    return this;
+  map<U>(fn: (data: T) => U): Option<U> {
+    return Some(fn(this.#data));
   }
 
-  mapOr(_: T, fn: (data: T) => T): T {
+  mapOr<U>(_: U, fn: (data: T) => U): U {
     return fn(this.#data);
   }
 
-  mapOrElse(_: () => T, someFn: (data: T) => T): T {
+  mapOrElse<U>(_: () => U, someFn: (data: T) => U): U {
     return someFn(this.#data);
   }
 
-  and(option: Option<T>): Option<T> {
-    return option.isSome() ? option : new _None<any>();
+  and<U>(option: Option<U>): Option<U> {
+    return option;
   }
 
   or(_or: Option<T>): Option<T> {
+    return this;
+  }
+
+  orElse(_: () => Option<T>): Option<T> {
     return this;
   }
 
@@ -155,7 +188,28 @@ class _Some<T> implements Option<T> {
   }
 
   filter(fn: (data: T) => boolean): Option<T> {
-    return fn(this.#data) ? this : new _None<any>();
+    return fn(this.#data) ? this : None;
+  }
+
+  toNullable(): T | null {
+    return this.#data;
+  }
+
+  toUndefined(): T | undefined {
+    return this.#data;
+  }
+
+  inspect(fn: (data: T) => void): Option<T> {
+    fn(this.#data);
+    return this;
+  }
+
+  contains(value: T): boolean {
+    return Object.is(this.#data, value);
+  }
+
+  xor(option: Option<T>): Option<T> {
+    return option.isSome() ? None : this;
   }
 }
 
@@ -185,24 +239,28 @@ class _None<T> implements Option<T> {
     return fn();
   }
 
-  map(_: (data: T) => T): Option<T> {
-    return this;
+  map<U>(_: (data: T) => U): Option<U> {
+    return None;
   }
 
-  mapOr(fallback: T, _: (data: T) => T): T {
+  mapOr<U>(fallback: U, _: (data: T) => U): U {
     return fallback;
   }
 
-  mapOrElse(noneFn: () => T, _: (data: T) => T): T {
+  mapOrElse<U>(noneFn: () => U, _: (data: T) => U): U {
     return noneFn();
   }
 
-  and(_: Option<T>): Option<T> {
-    return this;
+  and<U>(_: Option<U>): Option<U> {
+    return None;
   }
 
   or(or: Option<T>): Option<T> {
     return or;
+  }
+
+  orElse(fn: () => Option<T>): Option<T> {
+    return fn();
   }
 
   okOr<E>(result: E): Result<T, E> {
@@ -220,9 +278,29 @@ class _None<T> implements Option<T> {
   filter(_: (data: T) => boolean): Option<T> {
     return this;
   }
+
+  toNullable(): T | null {
+    return null;
+  }
+
+  toUndefined(): T | undefined {
+    return undefined;
+  }
+
+  inspect(_: (data: T) => void): Option<T> {
+    return this;
+  }
+
+  contains(_: T): boolean {
+    return false;
+  }
+
+  xor(option: Option<T>): Option<T> {
+    return option.isSome() ? option : this;
+  }
 }
 
-export type InnerOption<T extends Option<any>> = T extends Option<infer R>
+export type InnerOption<T extends Option<unknown>> = T extends Option<infer R>
   ? R
   : never;
 
@@ -232,4 +310,28 @@ export function Some<T>(data: T): Option<T> {
 }
 
 // Singleton instance representing the None variant
-export const None: Option<any> = new _None<any>();
+export const None: Option<never> = new _None<never>();
+
+/**
+ * Converts `null` or `undefined` to `None`; all other values become `Some`.
+ */
+export function fromNullable<T>(data: T): Option<NonNullable<T>> {
+  return data == null ? None : Some(data as NonNullable<T>);
+}
+
+/**
+ * Converts a value to `Some` when `predicate` returns true, otherwise `None`.
+ */
+export function fromPredicate<T>(
+  data: T,
+  predicate: (data: T) => boolean,
+): Option<T> {
+  return predicate(data) ? Some(data) : None;
+}
+
+/**
+ * Flattens a nested option.
+ */
+export function flattenOption<T>(option: Option<Option<T>>): Option<T> {
+  return option.andThen((inner) => inner);
+}

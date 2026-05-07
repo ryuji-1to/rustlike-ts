@@ -59,13 +59,23 @@ export interface Result<T, E> {
    * Applies a function to the contained `Ok` value, returning a new `Result<T, E>`.
    * If the result is `Err`, it remains unchanged.
    */
-  map(fn: (data: T) => T): Result<T, E>;
+  map<U>(fn: (data: T) => U): Result<U, E>;
 
   /**
    * Applies a function to the contained `Err` value, returning a new `Result<T, E>`.
    * If the result is `Ok`, it remains unchanged.
    */
-  mapErr(fn: (err: E) => E): Result<T, E>;
+  mapErr<F>(fn: (err: E) => F): Result<T, F>;
+
+  /**
+   * Maps an `Ok` value to `U`, or returns the provided fallback if `Err`.
+   */
+  mapOr<U>(fallback: U, fn: (data: T) => U): U;
+
+  /**
+   * Maps an `Ok` value to `U`, or computes a fallback from the error if `Err`.
+   */
+  mapOrElse<U>(fallbackFn: (error: E) => U, fn: (data: T) => U): U;
 
   /**
    * Returns `Err` if the result is `Err`, otherwise returns the provided `Result<U, E>`.
@@ -81,13 +91,33 @@ export interface Result<T, E> {
   /**
    * Returns the result if it is `Ok`, otherwise returns the provided alternative `Result<T, E>`.
    */
-  or(result: Result<T, E>): Result<T, E>;
+  or<F>(result: Result<T, F>): Result<T, F>;
 
   /**
    * Applies a function to the `Err` value and returns a new `Result<T, F>`.
    * If the result is `Ok`, it remains unchanged.
    */
   orElse<F>(fn: (err: E) => Result<T, F>): Result<T, F>;
+
+  /**
+   * Calls `fn` with the contained `Ok` value, then returns the original result.
+   */
+  inspect(fn: (data: T) => void): Result<T, E>;
+
+  /**
+   * Calls `fn` with the contained `Err` value, then returns the original result.
+   */
+  inspectErr(fn: (error: E) => void): Result<T, E>;
+
+  /**
+   * Returns `true` if this result is `Ok` and contains the provided value.
+   */
+  contains(value: T): boolean;
+
+  /**
+   * Returns `true` if this result is `Err` and contains the provided error.
+   */
+  containsErr(error: E): boolean;
 }
 
 /**
@@ -101,8 +131,8 @@ export class ResultError extends Error {
  * Represents the Ok variant of the Result type.
  * Stores a value of type T when the operation is successful.
  */
-class _Ok<T, _E = any> implements Result<T, _E> {
-  #data: T;
+class _Ok<T, _E = never> implements Result<T, _E> {
+  readonly #data: T;
   constructor(data: T) {
     this.#data = data;
   }
@@ -113,7 +143,7 @@ class _Ok<T, _E = any> implements Result<T, _E> {
 
   unwrapErr(): _E {
     throw new ResultError(
-      `Called unwrapErr() on an Ok value: ${JSON.stringify(this.#data)}`
+      `Called unwrapErr() on an Ok value: ${JSON.stringify(this.#data)}`,
     );
   }
 
@@ -149,13 +179,37 @@ class _Ok<T, _E = any> implements Result<T, _E> {
     return None;
   }
 
-  map(fn: (data: T) => T): Result<T, _E> {
-    this.#data = fn(this.#data);
+  map<U>(fn: (data: T) => U): Result<U, _E> {
+    return Ok(fn(this.#data));
+  }
+
+  mapErr<F>(_fn: (err: _E) => F): Result<T, F> {
+    return this as unknown as Result<T, F>;
+  }
+
+  mapOr<U>(_: U, fn: (data: T) => U): U {
+    return fn(this.#data);
+  }
+
+  mapOrElse<U>(_: (error: _E) => U, fn: (data: T) => U): U {
+    return fn(this.#data);
+  }
+
+  inspect(fn: (data: T) => void): Result<T, _E> {
+    fn(this.#data);
     return this;
   }
 
-  mapErr(_fn: (err: _E) => _E): Result<T, _E> {
+  inspectErr(_: (error: _E) => void): Result<T, _E> {
     return this;
+  }
+
+  contains(value: T): boolean {
+    return Object.is(this.#data, value);
+  }
+
+  containsErr(_: _E): boolean {
+    return false;
   }
 
   and<U>(result: Result<U, _E>): Result<U, _E> {
@@ -166,8 +220,8 @@ class _Ok<T, _E = any> implements Result<T, _E> {
     return fn(this.#data);
   }
 
-  or(_result: Result<T, _E>): Result<T, _E> {
-    return this;
+  or<F>(_result: Result<T, F>): Result<T, F> {
+    return this as unknown as Result<T, F>;
   }
 
   orElse<_F>(_: (err: _E) => Result<T, _F>): Result<T, _F> {
@@ -179,15 +233,15 @@ class _Ok<T, _E = any> implements Result<T, _E> {
  * Represents the Err variant of the Result type.
  * Stores an error of type E when the operation fails.
  */
-class _Err<E, _T = any> implements Result<_T, E> {
-  #error: E;
+class _Err<E, _T = never> implements Result<_T, E> {
+  readonly #error: E;
   constructor(error: E) {
     this.#error = error;
   }
 
   unwrap(): _T {
     throw new ResultError(
-      `Called unwrap() on an Err value: ${JSON.stringify(this.#error)}`
+      `Called unwrap() on an Err value: ${JSON.stringify(this.#error)}`,
     );
   }
 
@@ -227,13 +281,37 @@ class _Err<E, _T = any> implements Result<_T, E> {
     return Some(this.#error);
   }
 
-  map(_fn: (data: _T) => _T): Result<_T, E> {
+  map<U>(_fn: (data: _T) => U): Result<U, E> {
+    return this as unknown as Result<U, E>;
+  }
+
+  mapErr<F>(fn: (err: E) => F): Result<_T, F> {
+    return Err(fn(this.#error));
+  }
+
+  mapOr<U>(fallback: U, _: (data: _T) => U): U {
+    return fallback;
+  }
+
+  mapOrElse<U>(fallbackFn: (error: E) => U, _: (data: _T) => U): U {
+    return fallbackFn(this.#error);
+  }
+
+  inspect(_: (data: _T) => void): Result<_T, E> {
     return this;
   }
 
-  mapErr(fn: (err: E) => E): Result<_T, E> {
-    this.#error = fn(this.#error);
+  inspectErr(fn: (error: E) => void): Result<_T, E> {
+    fn(this.#error);
     return this;
+  }
+
+  contains(_: _T): boolean {
+    return false;
+  }
+
+  containsErr(error: E): boolean {
+    return Object.is(this.#error, error);
   }
 
   and<_U>(_result: Result<_U, E>): Result<_U, E> {
@@ -244,7 +322,7 @@ class _Err<E, _T = any> implements Result<_T, E> {
     return this as unknown as Result<_U, E>;
   }
 
-  or(result: Result<_T, E>): Result<_T, E> {
+  or<F>(result: Result<_T, F>): Result<_T, F> {
     return result;
   }
 
@@ -253,26 +331,65 @@ class _Err<E, _T = any> implements Result<_T, E> {
   }
 }
 
-export type InnerResultOk<T extends Result<any, any>> = T extends Result<
-  infer R,
-  any
->
-  ? R
-  : never;
+export type InnerResultOk<T extends Result<unknown, unknown>> =
+  T extends Result<infer R, unknown> ? R : never;
 
-export type InnerResultErr<T extends Result<any, any>> = T extends Result<
-  any,
-  infer R
->
-  ? R
-  : never;
+export type InnerResultErr<T extends Result<unknown, unknown>> =
+  T extends Result<unknown, infer R> ? R : never;
 
 // Factory function to create a Ok instance
-export function Ok<T>(data: T): Result<T, any> {
+export function Ok<T>(data: T): Result<T, never> {
   return new _Ok(data);
 }
 
 // Factory function to create a Err instance
-export function Err<E>(error: E): Result<any, E> {
+export function Err<E>(error: E): Result<never, E> {
   return new _Err(error);
+}
+
+/**
+ * Executes `fn` and converts thrown values to `Err`.
+ */
+export function fromThrowable<T, E = unknown>(
+  fn: () => T,
+  mapError: (error: unknown) => E = (error) => error as E,
+): Result<T, E> {
+  try {
+    return Ok(fn());
+  } catch (error) {
+    return Err(mapError(error));
+  }
+}
+
+/**
+ * Converts a promise into a `Result`, mapping rejection reasons to `Err`.
+ */
+export async function fromPromise<T, E = unknown>(
+  promise: Promise<T>,
+  mapError: (error: unknown) => E = (error) => error as E,
+): Promise<Result<T, E>> {
+  try {
+    return Ok(await promise);
+  } catch (error) {
+    return Err(mapError(error));
+  }
+}
+
+/**
+ * Executes an async function and converts rejected values to `Err`.
+ */
+export async function tryAsync<T, E = unknown>(
+  fn: () => Promise<T>,
+  mapError: (error: unknown) => E = (error) => error as E,
+): Promise<Result<T, E>> {
+  return fromPromise(fn(), mapError);
+}
+
+/**
+ * Flattens a nested result.
+ */
+export function flattenResult<T, E>(
+  result: Result<Result<T, E>, E>,
+): Result<T, E> {
+  return result.andThen((inner) => inner);
 }
