@@ -1,5 +1,11 @@
 # rustlike-ts
 
+## 3.0.0
+
+### Major Changes
+
+- [#107](https://github.com/ryuji-1to/rustlike-ts/pull/107) [`c14c40d`](https://github.com/ryuji-1to/rustlike-ts/commit/c14c40df43051370a032ec8f4ba06759f637bb76) Thanks [@ryuji-1to](https://github.com/ryuji-1to)! - feat: prepare v2 rustlike api improvements
+
 ## 1.2.0
 
 ### Minor Changes
