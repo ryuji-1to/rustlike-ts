@@ -11,5 +11,5 @@
     "declaration": true,
     "forceConsistentCasingInFileNames": true
   },
-  "exclude": ["src/**/*.test.ts"]
+  "exclude": ["lib", "src/**/*.test.ts"]
 }

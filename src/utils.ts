@@ -14,9 +14,9 @@ import { Err, type Result, Ok } from "./result";
  * @param {(error: E) => R} op.Err - Function to execute if `result` is `Err`.
  * @returns {R} - The return value of the executed function.
  */
-export function matchResult<T, E, R = any>(
+export function matchResult<T, E, R = unknown>(
   result: Result<T, E>,
-  op: { Ok: (data: T) => R; Err: (error: E) => R }
+  op: { Ok: (data: T) => R; Err: (error: E) => R },
 ) {
   return result.isOk() ? op.Ok(result.unwrap()) : op.Err(result.unwrapErr());
 }
@@ -33,12 +33,12 @@ export function matchResult<T, E, R = any>(
  * @param {() => R} op.None - Function to execute if `result` is `None`.
  * @returns {R} - The return value of the executed function.
  */
-export function matchOption<T, R = any>(
+export function matchOption<T, R = unknown>(
   result: Option<T>,
   op: {
     Some: (data: T) => R;
     None: () => R;
-  }
+  },
 ): R {
   return result.isSome() ? op.Some(result.unwrap()) : op.None();
 }
@@ -55,14 +55,9 @@ export function matchOption<T, R = any>(
  */
 export function mapOption<T>(
   data: Option<T>[],
-  fn: (data: T) => T
+  fn: (data: T) => T,
 ): Option<T>[] {
-  return data.map((d) => {
-    if (d.isSome()) {
-      return Some(fn(d.unwrap()));
-    }
-    return None;
-  });
+  return data.map((d) => d.map(fn));
 }
 
 /**
@@ -78,14 +73,9 @@ export function mapOption<T>(
  */
 export function mapResult<T, E>(
   data: Result<T, E>[],
-  fn: (data: T) => T
+  fn: (data: T) => T,
 ): Result<T, E>[] {
-  return data.map((d) => {
-    if (d.isOk()) {
-      return Ok(fn(d.unwrap()));
-    }
-    return Err(d.unwrapErr());
-  });
+  return data.map((d) => d.map(fn));
 }
 
 /**
@@ -99,7 +89,7 @@ export function mapResult<T, E>(
  */
 export function filterMapOption<T>(
   data: Option<T>[],
-  fn: (data: T) => Option<T>
+  fn: (data: T) => Option<T>,
 ): Option<T>[] {
   return data
     .map((d) => (d.isSome() ? fn(d.unwrap()) : None))
@@ -118,9 +108,107 @@ export function filterMapOption<T>(
  */
 export function filterMapResult<T, E>(
   data: Result<T, E>[],
-  fn: (data: T) => Result<T, E>
+  fn: (data: T) => Result<T, E>,
 ): Result<T, E>[] {
   return data
     .map((d) => (d.isOk() ? fn(d.unwrap()) : Err(d.unwrapErr())))
     .filter((d) => d.isOk());
+}
+
+/**
+ * Converts an array of `Option<T>` to `Some<T[]>` when every item is `Some`.
+ * Returns `None` as soon as a `None` is found.
+ */
+export function collectOptions<T>(data: Option<T>[]): Option<T[]> {
+  const values: T[] = [];
+
+  for (const option of data) {
+    if (option.isNone()) {
+      return None;
+    }
+    values.push(option.unwrap());
+  }
+
+  return Some(values);
+}
+
+/**
+ * Converts an array of `Result<T, E>` to `Ok<T[]>` when every item is `Ok`.
+ * Returns the first `Err<E>` as soon as it is found.
+ */
+export function collectResults<T, E>(data: Result<T, E>[]): Result<T[], E> {
+  const values: T[] = [];
+
+  for (const result of data) {
+    if (result.isErr()) {
+      return Err(result.unwrapErr());
+    }
+    values.push(result.unwrap());
+  }
+
+  return Ok(values);
+}
+
+/**
+ * Splits options into contained values and a count of `None` items.
+ */
+export function partitionOptions<T>(data: Option<T>[]): {
+  values: T[];
+  noneCount: number;
+} {
+  const values: T[] = [];
+  let noneCount = 0;
+
+  for (const option of data) {
+    if (option.isSome()) {
+      values.push(option.unwrap());
+    } else {
+      noneCount += 1;
+    }
+  }
+
+  return { values, noneCount };
+}
+
+/**
+ * Splits results into `Ok` values and `Err` values.
+ */
+export function partitionResults<T, E>(
+  data: Result<T, E>[],
+): {
+  values: T[];
+  errors: E[];
+} {
+  const values: T[] = [];
+  const errors: E[] = [];
+
+  for (const result of data) {
+    if (result.isOk()) {
+      values.push(result.unwrap());
+    } else {
+      errors.push(result.unwrapErr());
+    }
+  }
+
+  return { values, errors };
+}
+
+/**
+ * Maps every item with an option-returning function and collects the result.
+ */
+export function traverseOption<T, U>(
+  data: T[],
+  fn: (data: T) => Option<U>,
+): Option<U[]> {
+  return collectOptions(data.map(fn));
+}
+
+/**
+ * Maps every item with a result-returning function and collects the result.
+ */
+export function traverseResult<T, U, E>(
+  data: T[],
+  fn: (data: T) => Result<U, E>,
+): Result<U[], E> {
+  return collectResults(data.map(fn));
 }
